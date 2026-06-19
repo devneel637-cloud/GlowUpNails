@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order &amp; Payment — GlowUp Nails</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #faf7f4;
+      color: #2d2a2e;
+    }
+
+    h1, h2, h3, h4, .heading-font {
+      font-family: 'Playfair Display', serif;
+    }
+
+    .qty-btn {
+      transition: all 0.15s;
+    }
+    .qty-btn:hover {
+      background: #f3e8ff;
+    }
+
+    .copy-toast {
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .copy-toast.show {
+      opacity: 1;
+    }
+
+    .payment-card {
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .payment-card:hover {
+      border-color: #f472b6;
+    }
+    .payment-card.active {
+      border-color: #f472b6;
+      background: #fdf2f8;
+      box-shadow: 0 0 0 3px rgba(244,114,182,0.15);
+    }
+
+    .nav-shadow {
+      transition: box-shadow 0.2s;
+    }
+    .nav-shadow.scrolled {
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    .order-confirmed {
+      animation: fadeInUp 0.5s ease;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    input, select, textarea {
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #f472b6;
+      box-shadow: 0 0 0 3px rgba(244,114,182,0.15);
+    }
+
+    .input-error {
+      border-color: #f43f5e !important;
+      box-shadow: 0 0 0 3px rgba(244,63,94,0.15) !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <header id="navbar" class="nav-shadow sticky top-0 z-50 bg-white/95 backdrop-blur-sm">
+    <div class="max-w-7xl mx-auto px-5 lg:px-8 flex items-center justify-between h-16 lg:h-20">
+      <a href="index.html" class="heading-font text-2xl lg:text-3xl font-bold tracking-tight text-gray-800">
+        GlowUp <span class="text-pink-400">Nails</span>
+      </a>
+      <div class="flex items-center gap-4 text-sm font-medium text-gray-500">
+        <span class="hidden sm:inline text-gray-400">&#9733; Secure Checkout</span>
+        <span class="hidden sm:inline text-gray-300">|</span>
+        <a href="index.html" class="hover:text-pink-500 transition-colors">&larr; Back to Shop</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="max-w-7xl mx-auto px-5 lg:px-8 py-8 lg:py-12">
+    <div class="flex flex-col lg:flex-row gap-10">
+
+      <!-- ==================== LEFT: ORDER FORM ==================== -->
+      <div class="flex-[2]">
+
+        <!-- Order ID -->
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h1 class="heading-font text-3xl lg:text-4xl font-bold text-gray-900">Complete Your Order</h1>
+            <p class="text-sm text-gray-400 mt-1">Fill in your details and select a payment method.</p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-gray-400">Order ID</p>
+            <p id="orderIdDisplay" class="text-sm font-bold text-pink-500 font-mono tracking-wider">loading...</p>
+          </div>
+        </div>
+
+        <!-- ===== PRODUCT LIST ===== -->
+        <section>
+          <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <i data-lucide="package" class="w-5 h-5 text-pink-400"></i>
+            Your Items
+          </h2>
+
+          <div class="space-y-4" id="productList">
+            <!-- Products injected by JS -->
+          </div>
+        </section>
+
+        <!-- ===== CUSTOMER INFO ===== -->
+        <section class="mt-10">
+          <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <i data-lucide="user" class="w-5 h-5 text-pink-400"></i>
+            Your Details
+          </h2>
+
+          <div class="bg-white rounded-3xl p-6 lg:p-8 shadow-sm border border-gray-100 space-y-5">
+            <div class="grid sm:grid-cols-2 gap-5">
+              <div>
+                <label class="text-sm font-medium text-gray-700">Full Name</label>
+                <input id="custName" type="text" placeholder="e.g. Jane Doe"
+                       class="w-full mt-1.5 px-4 py-3 rounded-xl border border-gray-200 text-sm transition-all" />
+              </div>
+              <div>
+                <label class="text-sm font-medium text-gray-700">Email</label>
+                <input id="custEmail" type="email" placeholder="jane@example.com"
+                       class="w-full mt-1.5 px-4 py-3 rounded-xl border border-gray-200 text-sm transition-all" />
+              </div>
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Phone</label>
+              <input id="custPhone" type="tel" placeholder="+1 (555) 123-4567"
+                     class="w-full mt-1.5 px-4 py-3 rounded-xl border border-gray-200 text-sm transition-all" />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Shipping Address</label>
+              <textarea id="custAddress" rows="2" placeholder="Street, City, State, ZIP, Country"
+                        class="w-full mt-1.5 px-4 py-3 rounded-xl border border-gray-200 text-sm transition-all resize-none"></textarea>
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Order Notes (optional)</label>
+              <textarea id="custNotes" rows="2" placeholder="Any special requests..."
+                        class="w-full mt-1.5 px-4 py-3 rounded-xl border border-gray-200 text-sm transition-all resize-none"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== PAYMENT METHOD ===== -->
+        <section class="mt-10">
+          <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <i data-lucide="credit-card" class="w-5 h-5 text-pink-400"></i>
+            Payment Method
+          </h2>
+
+          <div class="grid sm:grid-cols-2 gap-4" id="paymentMethods">
+
+            <!-- USDC BEP20 (selected by default) -->
+            <div class="payment-card active bg-white rounded-2xl p-5 border-2 border-pink-300" data-method="usdc">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-500">
+                  <i data-lucide="circle-dollar-sign" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="font-bold text-sm text-gray-800">USDC (BEP20)</p>
+                  <p class="text-xs text-gray-400">Binance Smart Chain</p>
+                </div>
+                <div class="ml-auto">
+                  <div class="w-5 h-5 rounded-full border-2 border-pink-400 flex items-center justify-center">
+                    <div class="w-2.5 h-2.5 bg-pink-400 rounded-full"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Credit Card (placeholder) -->
+            <div class="payment-card bg-white rounded-2xl p-5 border-2 border-gray-200" data-method="card">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-500">
+                  <i data-lucide="credit-card" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="font-bold text-sm text-gray-800">Credit / Debit Card</p>
+                  <p class="text-xs text-gray-400">Visa, Mastercard, Amex</p>
+                </div>
+                <div class="ml-auto">
+                  <div class="w-5 h-5 rounded-full border-2 border-gray-300"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PayPal (placeholder) -->
+            <div class="payment-card bg-white rounded-2xl p-5 border-2 border-gray-200" data-method="paypal">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-500">
+                  <i data-lucide="wallet" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="font-bold text-sm text-gray-800">PayPal</p>
+                  <p class="text-xs text-gray-400">Pay with your PayPal account</p>
+                </div>
+                <div class="ml-auto">
+                  <div class="w-5 h-5 rounded-full border-2 border-gray-300"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- USDT TRC20 (placeholder) -->
+            <div class="payment-card bg-white rounded-2xl p-5 border-2 border-gray-200" data-method="usdt">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center text-teal-500">
+                  <i data-lucide="coins" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="font-bold text-sm text-gray-800">USDT (TRC20)</p>
+                  <p class="text-xs text-gray-400">Tron Network</p>
+                </div>
+                <div class="ml-auto">
+                  <div class="w-5 h-5 rounded-full border-2 border-gray-300"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wallet Address (shown when USDC selected) -->
+          <div id="walletSection" class="mt-5 bg-gray-900 rounded-2xl p-6 lg:p-7">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="shield-check" class="w-5 h-5 text-green-400"></i>
+              <span class="text-sm font-semibold text-white">Send exact USDC (BEP20) to this address</span>
+            </div>
+
+            <div class="flex items-center gap-3 bg-gray-800 rounded-xl px-4 py-3.5 border border-gray-700">
+              <code id="walletAddress" class="text-sm text-green-300 font-mono break-all select-all">
+                0x54494E2599B0Abe79bDa1b60a1c93C26D84Ad35d
+              </code>
+              <button id="copyBtn" class="shrink-0 bg-pink-400 hover:bg-pink-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all whitespace-nowrap">
+                Copy Address
+              </button>
+            </div>
+
+            <p id="copyToast" class="copy-toast text-xs text-green-400 mt-2">Address copied!</p>
+
+            <div class="mt-4 flex flex-wrap gap-4 text-xs text-gray-400">
+              <span class="flex items-center gap-1"><i data-lucide="info" class="w-3.5 h-3.5 text-pink-400"></i> Network: BSC (BEP20)</span>
+              <span class="flex items-center gap-1"><i data-lucide="info" class="w-3.5 h-3.5 text-pink-400"></i> Min confirmations: 2</span>
+              <span class="flex items-center gap-1"><i data-lucide="info" class="w-3.5 h-3.5 text-pink-400"></i> Processing time: ~1-5 min</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Place Order Button -->
+        <button id="placeOrderBtn"
+                class="mt-10 w-full bg-gradient-to-r from-pink-400 to-rose-400 text-white font-bold text-base py-4 rounded-xl hover:from-pink-500 hover:to-rose-500 transition-all shadow-lg shadow-pink-200/50">
+          Place Order &mdash; <span id="totalDisplay">$0.00</span>
+        </button>
+        <p class="text-xs text-gray-400 text-center mt-3">
+          <i data-lucide="lock" class="w-3.5 h-3.5 inline-block align-text-top"></i>
+          Your information is encrypted and secure.
+        </p>
+      </div>
+
+      <!-- ==================== RIGHT: ORDER SUMMARY SIDEBAR ==================== -->
+      <aside class="flex-[1] lg:sticky lg:top-28 lg:self-start">
+        <div class="bg-white rounded-3xl p-6 lg:p-8 shadow-sm border border-gray-100">
+          <h3 class="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
+            <i data-lucide="shopping-bag" class="w-5 h-5 text-pink-400"></i>
+            Order Summary
+          </h3>
+
+          <!-- Summary items injected by JS -->
+          <div id="summaryItems" class="space-y-3">
+            <!-- populated by JS -->
+          </div>
+
+          <hr class="my-4 border-gray-100" />
+
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between text-gray-500">
+              <span>Subtotal</span>
+              <span id="summarySubtotal">$0.00</span>
+            </div>
+            <div class="flex justify-between text-gray-500">
+              <span>Shipping</span>
+              <span id="summaryShipping" class="text-green-500">Free</span>
+            </div>
+            <div class="flex justify-between text-gray-500">
+              <span>Tax</span>
+              <span id="summaryTax">$0.00</span>
+            </div>
+          </div>
+
+          <hr class="my-4 border-gray-100" />
+
+          <div class="flex justify-between text-lg font-bold text-gray-900">
+            <span>Total</span>
+            <span id="summaryTotal">$0.00</span>
+          </div>
+
+          <div class="mt-5 flex items-center gap-2 text-xs text-gray-400 bg-gray-50 rounded-xl px-4 py-3">
+            <i data-lucide="truck" class="w-4 h-4 text-pink-400 shrink-0"></i>
+            Free shipping on all orders over $40
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- ==================== CONFIRMATION MODAL ==================== -->
+  <div id="confirmationModal" class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm hidden items-center justify-center p-5">
+    <div class="order-confirmed bg-white rounded-3xl max-w-lg w-full p-8 lg:p-10 shadow-2xl text-center">
+      <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center text-green-500 mb-5">
+        <i data-lucide="check-circle" class="w-8 h-8"></i>
+      </div>
+      <h2 class="heading-font text-2xl font-bold text-gray-900">Order Placed!</h2>
+      <p class="text-sm text-gray-500 mt-2">Thank you for your order. Here's your order reference:</p>
+      <p id="confirmOrderId" class="text-lg font-mono font-bold text-pink-500 bg-pink-50 rounded-xl px-4 py-3 mt-4"></p>
+
+      <!-- Payment instructions -->
+      <div id="paymentInstructions" class="mt-5 bg-gray-900 rounded-2xl p-5 text-left">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Payment Instructions</p>
+        <p class="text-sm text-white font-medium">Send <span id="confirmAmount" class="text-pink-300"></span> USDC (BEP20) to:</p>
+        <code class="block text-xs text-green-300 font-mono bg-gray-800 rounded-lg px-3 py-2.5 mt-2 break-all">
+          0x54494E2599B0Abe79bDa1b60a1c93C26D84Ad35d
+        </code>
+        <p class="text-xs text-gray-400 mt-2">Your order will be processed once the payment is confirmed on-chain.</p>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3 mt-6">
+        <a href="order.html" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 rounded-xl text-sm transition-all">
+          View My Orders
+        </a>
+        <a href="index.html" class="flex-1 bg-pink-400 hover:bg-pink-500 text-white font-semibold py-3 rounded-xl text-sm transition-all">
+          Continue Shopping
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      function refreshIcons() { if (typeof lucide !== 'undefined') lucide.createIcons(); }
+
+      // ==================== PRODUCT DATA ====================
+      const products = [
+        {
+          id: 1,
+          name: 'Fruity Fun Kit',
+          desc: 'Vibrant reds, yellows & kiwi-strawberry accents',
+          price: 24.99,
+          image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=200&q=80&auto=format&fit=crop'
+        },
+        {
+          id: 2,
+          name: 'Neon Swirls Kit',
+          desc: 'Retro 70s wavy psychedelic vibes',
+          price: 24.99,
+          image: 'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=200&q=80&auto=format&fit=crop'
+        },
+        {
+          id: 3,
+          name: 'Pastel Dream Kit',
+          desc: 'Soft lilac clouds, mint waves & daisy accents',
+          price: 24.99,
+          image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=200&q=80&auto=format&fit=crop'
+        },
+        {
+          id: 4,
+          name: 'Essential Tools Kit',
+          desc: 'File, buffer, cuticle pusher & scissors',
+          price: 14.99,
+          image: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=200&q=80&auto=format&fit=crop'
+        },
+        {
+          id: 5,
+          name: 'Premium Glue Set (3-Pack)',
+          desc: 'Professional-grade, fast-bonding nail glue',
+          price: 9.99,
+          image: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=200&q=80&auto=format&fit=crop'
+        },
+        {
+          id: 6,
+          name: 'Nail Art Sticker Pack',
+          desc: '50+ summer designs, decals & patterns',
+          price: 7.99,
+          image: 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?w=200&q=80&auto=format&fit=crop'
+        },
+        {
+          id: 7,
+          name: 'Crystal Gems & Charms Set',
+          desc: '60+ rhinestones, pearls & metallic charms',
+          price: 12.99,
+          image: 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?w=200&q=80&auto=format&fit=crop'
+        },
+        {
+          id: 8,
+          name: 'UV Gel Top Coat',
+          desc: 'High-shine, chip-resistant gel finish',
+          price: 11.99,
+          image: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=200&q=80&auto=format&fit=crop'
+        }
+      ];
+
+      // ==================== GENERATE ORDER ID ====================
+      function generateOrderId() {
+        const prefix = 'GN';
+        const ts = Date.now().toString(36).toUpperCase();
+        const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+        return prefix + ts + rand;
+      }
+
+      const orderId = generateOrderId();
+      document.getElementById('orderIdDisplay').textContent = orderId;
+
+      // ==================== RENDER PRODUCTS ====================
+      const productList = document.getElementById('productList');
+      const summaryItems = document.getElementById('summaryItems');
+      const quantities = {};
+
+      function renderProducts() {
+        productList.innerHTML = '';
+        products.forEach(function (p) {
+          quantities[p.id] = quantities[p.id] || 0;
+          const div = document.createElement('div');
+          div.className = 'bg-white rounded-2xl p-4 lg:p-5 flex items-center gap-4 border border-gray-100 shadow-sm';
+          div.innerHTML =
+            '<img src="' + p.image + '" alt="' + p.name + '" class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shrink-0" />' +
+            '<div class="flex-1 min-w-0">' +
+              '<h4 class="text-sm font-bold text-gray-800">' + p.name + '</h4>' +
+              '<p class="text-xs text-gray-400 truncate">' + p.desc + '</p>' +
+              '<p class="text-sm font-bold text-pink-500 mt-1">$' + p.price.toFixed(2) + '</p>' +
+            '</div>' +
+            '<div class="flex items-center gap-2 shrink-0">' +
+              '<button class="qty-btn qty-minus w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-pink-50 hover:text-pink-500 transition-all" data-id="' + p.id + '">' +
+                '<i data-lucide="minus" class="w-4 h-4"></i>' +
+              '</button>' +
+              '<span class="qty-val w-6 text-center text-sm font-bold text-gray-800" data-id="' + p.id + '">0</span>' +
+              '<button class="qty-btn qty-plus w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-pink-50 hover:text-pink-500 transition-all" data-id="' + p.id + '">' +
+                '<i data-lucide="plus" class="w-4 h-4"></i>' +
+              '</button>' +
+            '</div>';
+          productList.appendChild(div);
+        });
+        refreshIcons();
+        bindQtyButtons();
+        updateSummary();
+      }
+
+      function bindQtyButtons() {
+        document.querySelectorAll('.qty-plus').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const id = parseInt(this.dataset.id);
+            quantities[id] = (quantities[id] || 0) + 1;
+            updateQtyDisplay(id);
+            updateSummary();
+          });
+        });
+        document.querySelectorAll('.qty-minus').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const id = parseInt(this.dataset.id);
+            if ((quantities[id] || 0) > 0) {
+              quantities[id]--;
+              updateQtyDisplay(id);
+              updateSummary();
+            }
+          });
+        });
+      }
+
+      function updateQtyDisplay(id) {
+        const spans = document.querySelectorAll('.qty-val[data-id="' + id + '"]');
+        spans.forEach(function (span) { span.textContent = quantities[id] || 0; });
+      }
+
+      function updateSummary() {
+        let subtotal = 0;
+        let itemCount = 0;
+
+        // Build summary HTML
+        let html = '';
+        products.forEach(function (p) {
+          const qty = quantities[p.id] || 0;
+          if (qty > 0) {
+            const lineTotal = p.price * qty;
+            subtotal += lineTotal;
+            itemCount += qty;
+            html +=
+              '<div class="flex items-center justify-between text-sm">' +
+                '<span class="text-gray-600 truncate max-w-[180px]">' +
+                  '<span class="text-gray-400 text-xs mr-1">' + qty + 'x</span> ' + p.name +
+                '</span>' +
+                '<span class="font-semibold text-gray-800">$' + lineTotal.toFixed(2) + '</span>' +
+              '</div>';
+          }
+        });
+
+        if (itemCount === 0) {
+          html = '<p class="text-sm text-gray-400 text-center py-4">No items selected yet.</p>';
+        }
+
+        summaryItems.innerHTML = html;
+
+        const tax = subtotal * 0.08;
+        const shipping = subtotal >= 40 || subtotal === 0 ? 0 : 5.99;
+        const total = subtotal + tax + shipping;
+
+        document.getElementById('summarySubtotal').textContent = '$' + subtotal.toFixed(2);
+        document.getElementById('summaryTax').textContent = '$' + tax.toFixed(2);
+        document.getElementById('summaryShipping').textContent = shipping === 0 ? 'Free' : '$' + shipping.toFixed(2);
+        document.getElementById('summaryTotal').textContent = '$' + total.toFixed(2);
+        document.getElementById('totalDisplay').textContent = '$' + total.toFixed(2);
+      }
+
+      renderProducts();
+
+      // ==================== PAYMENT METHOD SELECTION ====================
+      const paymentCards = document.querySelectorAll('.payment-card');
+      const walletSection = document.getElementById('walletSection');
+      let selectedMethod = 'usdc';
+
+      paymentCards.forEach(function (card) {
+        card.addEventListener('click', function () {
+          paymentCards.forEach(function (c) {
+            c.classList.remove('active');
+            c.classList.remove('border-pink-300');
+            c.classList.add('border-gray-200');
+            const radio = c.querySelector('.w-5.h-5.rounded-full');
+            if (radio) {
+              radio.innerHTML = '';
+              radio.className = 'w-5 h-5 rounded-full border-2 border-gray-300';
+            }
+          });
+          this.classList.add('active');
+          this.classList.remove('border-gray-200');
+          this.classList.add('border-pink-300');
+          const radio = this.querySelector('.w-5.h-5.rounded-full');
+          if (radio) {
+            radio.innerHTML = '<div class="w-2.5 h-2.5 bg-pink-400 rounded-full"></div>';
+            radio.className = 'w-5 h-5 rounded-full border-2 border-pink-400 flex items-center justify-center';
+          }
+          selectedMethod = this.dataset.method;
+
+          // show/hide wallet section
+          if (selectedMethod === 'usdc') {
+            walletSection.classList.remove('hidden');
+          } else {
+            walletSection.classList.add('hidden');
+          }
+        });
+      });
+
+      // ==================== COPY WALLET ADDRESS ====================
+      const copyBtn = document.getElementById('copyBtn');
+      const copyToast = document.getElementById('copyToast');
+
+      copyBtn.addEventListener('click', function () {
+        const addr = document.getElementById('walletAddress').textContent.trim();
+        navigator.clipboard.writeText(addr).then(function () {
+          copyToast.classList.add('show');
+          setTimeout(function () { copyToast.classList.remove('show'); }, 2000);
+        }).catch(function () {
+          // fallback
+          const textArea = document.createElement('textarea');
+          textArea.value = addr;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          textArea.remove();
+          copyToast.classList.add('show');
+          setTimeout(function () { copyToast.classList.remove('show'); }, 2000);
+        });
+      });
+
+      // ==================== PLACE ORDER ====================
+      const placeOrderBtn = document.getElementById('placeOrderBtn');
+
+      function showError(inputId) {
+        const el = document.getElementById(inputId);
+        el.classList.add('input-error');
+        setTimeout(function () { el.classList.remove('input-error'); }, 3000);
+      }
+
+      placeOrderBtn.addEventListener('click', function () {
+        // Validate
+        const name = document.getElementById('custName').value.trim();
+        const email = document.getElementById('custEmail').value.trim();
+        const phone = document.getElementById('custPhone').value.trim();
+        const address = document.getElementById('custAddress').value.trim();
+
+        let valid = true;
+        if (!name) { showError('custName'); valid = false; }
+        if (!email || !email.includes('@')) { showError('custEmail'); valid = false; }
+        if (!phone) { showError('custPhone'); valid = false; }
+        if (!address) { showError('custAddress'); valid = false; }
+
+        // Check at least one item
+        const totalQty = Object.values(quantities).reduce(function (sum, q) { return sum + q; }, 0);
+        if (totalQty === 0) {
+          alert('Please add at least one item to your order.');
+          valid = false;
+        }
+
+        if (!valid) return;
+
+        // Calculate total
+        let subtotal = 0;
+        products.forEach(function (p) {
+          const qty = quantities[p.id] || 0;
+          subtotal += p.price * qty;
+        });
+        const tax = subtotal * 0.08;
+        const shipping = subtotal >= 40 ? 0 : 5.99;
+        const total = subtotal + tax + shipping;
+
+        // Show confirmation
+        document.getElementById('confirmOrderId').textContent = orderId;
+        document.getElementById('confirmAmount').textContent = '$' + total.toFixed(2);
+        document.getElementById('confirmationModal').classList.remove('hidden');
+        document.getElementById('confirmationModal').style.display = 'flex';
+      });
+
+      // Close modal on backdrop click
+      document.getElementById('confirmationModal').addEventListener('click', function (e) {
+        if (e.target === this) {
+          this.style.display = 'none';
+          this.classList.add('hidden');
+        }
+      });
+
+      // ==================== NAV SHADOW ====================
+      const navbar = document.getElementById('navbar');
+      window.addEventListener('scroll', function () {
+        navbar.classList.toggle('scrolled', window.scrollY > 20);
+      });
+
+      refreshIcons();
+    });
+  </script>
+</body>
+</html>
